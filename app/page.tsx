@@ -1,0 +1,388 @@
+'use client'
+
+import { useState, useEffect } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { 
+  Search, 
+  Download, 
+  FileText, 
+  Brain, 
+  CheckCircle, 
+  AlertCircle,
+  Loader2,
+  Sparkles,
+  Globe,
+  Database,
+  Zap
+} from 'lucide-react'
+import axios from 'axios'
+
+interface Document {
+  filename: string
+  source: string
+  pages: number
+  text_length: number
+}
+
+interface QueryResponse {
+  answer: string
+  sources: Document[]
+  query: string
+  model_used: string
+}
+
+export default function Home() {
+  const [query, setQuery] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
+  const [isCrawling, setIsCrawling] = useState(false)
+  const [response, setResponse] = useState<QueryResponse | null>(null)
+  const [error, setError] = useState('')
+  const [documents, setDocuments] = useState<Document[]>([])
+  const [totalDocuments, setTotalDocuments] = useState(0)
+  const [crawlStatus, setCrawlStatus] = useState('')
+
+  // Load document status on component mount
+  useEffect(() => {
+    loadDocumentStatus()
+  }, [])
+
+  const loadDocumentStatus = async () => {
+    try {
+      const response = await axios.get('/api/query')
+      if (response.data.status === 'success') {
+        setDocuments(response.data.documents)
+        setTotalDocuments(response.data.total_documents)
+      }
+    } catch (error) {
+      console.error('Error loading document status:', error)
+    }
+  }
+
+  const handleCrawl = async () => {
+    setIsCrawling(true)
+    setCrawlStatus('')
+    setError('')
+    
+    try {
+      const response = await axios.post('/api/crawl')
+      if (response.data.status === 'success') {
+        setCrawlStatus(response.data.message)
+        setTotalDocuments(response.data.total_files)
+        // Reload document status
+        await loadDocumentStatus()
+      } else {
+        setError(response.data.message || 'Crawling failed')
+      }
+    } catch (error: any) {
+      setError(error.response?.data?.message || 'Error during crawling')
+    } finally {
+      setIsCrawling(false)
+    }
+  }
+
+  const handleQuery = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!query.trim()) return
+
+    setIsLoading(true)
+    setError('')
+    setResponse(null)
+
+    try {
+      const response = await axios.post('/api/query', { query })
+      if (response.data.status === 'success') {
+        setResponse(response.data)
+      } else {
+        setError(response.data.message || 'Query failed')
+      }
+    } catch (error: any) {
+      setError(error.response?.data?.message || 'Error processing query')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const exampleQueries = [
+    "What are the main air quality standards mentioned in the documents?",
+    "How do the documents address water pollution prevention?",
+    "What environmental regulations are discussed?",
+    "What are the key findings about climate change impacts?"
+  ]
+
+  return (
+    <div className="min-h-screen">
+      {/* Header */}
+      <motion.header 
+        className="bg-white/80 backdrop-blur-md border-b border-gray-200 sticky top-0 z-50"
+        initial={{ y: -100 }}
+        animate={{ y: 0 }}
+        transition={{ duration: 0.5 }}
+      >
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <div className="p-2 bg-gradient-to-r from-primary-500 to-accent-500 rounded-lg">
+                <Brain className="h-8 w-8 text-white" />
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold gradient-text">Document Manager</h1>
+                <p className="text-sm text-gray-600">AI Research Bot</p>
+              </div>
+            </div>
+            <div className="flex items-center space-x-4">
+              <div className="text-right">
+                <p className="text-sm text-gray-600">Documents</p>
+                <p className="text-lg font-semibold text-primary-600">{totalDocuments}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </motion.header>
+
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Hero Section */}
+        <motion.div 
+          className="text-center mb-12"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+        >
+          <h2 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
+            AI-Powered Document
+            <span className="gradient-text block">Research Assistant</span>
+          </h2>
+          <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
+            Crawl environmental documents, extract insights, and get intelligent answers 
+            powered by advanced AI technology.
+          </p>
+          
+          {/* Stats */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <motion.div 
+              className="card text-center"
+              whileHover={{ scale: 1.05 }}
+              transition={{ duration: 0.2 }}
+            >
+              <Database className="h-12 w-12 text-primary-500 mx-auto mb-4" />
+              <h3 className="text-2xl font-bold text-gray-900">{totalDocuments}</h3>
+              <p className="text-gray-600">Documents Indexed</p>
+            </motion.div>
+            
+            <motion.div 
+              className="card text-center"
+              whileHover={{ scale: 1.05 }}
+              transition={{ duration: 0.2 }}
+            >
+              <Zap className="h-12 w-12 text-accent-500 mx-auto mb-4" />
+              <h3 className="text-2xl font-bold text-gray-900">GPT-4</h3>
+              <p className="text-gray-600">AI Model</p>
+            </motion.div>
+            
+            <motion.div 
+              className="card text-center"
+              whileHover={{ scale: 1.05 }}
+              transition={{ duration: 0.2 }}
+            >
+              <Globe className="h-12 w-12 text-blue-500 mx-auto mb-4" />
+              <h3 className="text-2xl font-bold text-gray-900">EPA</h3>
+              <p className="text-gray-600">Data Sources</p>
+            </motion.div>
+          </div>
+        </motion.div>
+
+        {/* Action Buttons */}
+        <motion.div 
+          className="flex flex-col sm:flex-row gap-4 justify-center mb-12"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.2 }}
+        >
+          <button
+            onClick={handleCrawl}
+            disabled={isCrawling}
+            className="btn-primary flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {isCrawling ? (
+              <Loader2 className="h-5 w-5 animate-spin" />
+            ) : (
+              <Download className="h-5 w-5" />
+            )}
+            <span>{isCrawling ? 'Crawling...' : 'Crawl Documents'}</span>
+          </button>
+          
+          <button
+            onClick={loadDocumentStatus}
+            className="btn-secondary flex items-center justify-center space-x-2"
+          >
+            <FileText className="h-5 w-5" />
+            <span>Refresh Status</span>
+          </button>
+        </motion.div>
+
+        {/* Status Messages */}
+        <AnimatePresence>
+          {crawlStatus && (
+            <motion.div
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg flex items-center space-x-2"
+            >
+              <CheckCircle className="h-5 w-5 text-green-500" />
+              <span className="text-green-700">{crawlStatus}</span>
+            </motion.div>
+          )}
+          
+          {error && (
+            <motion.div
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-center space-x-2"
+            >
+              <AlertCircle className="h-5 w-5 text-red-500" />
+              <span className="text-red-700">{error}</span>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Query Section */}
+        <motion.div 
+          className="max-w-4xl mx-auto"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.4 }}
+        >
+          <div className="card mb-8">
+            <h3 className="text-2xl font-bold text-gray-900 mb-6 flex items-center space-x-2">
+              <Search className="h-6 w-6 text-primary-500" />
+              <span>Ask Questions</span>
+            </h3>
+            
+            <form onSubmit={handleQuery} className="space-y-4">
+              <div>
+                <textarea
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  placeholder="Ask a question about the environmental documents..."
+                  className="input-field min-h-[120px] resize-none"
+                  disabled={isLoading}
+                />
+              </div>
+              
+              <div className="flex flex-col sm:flex-row gap-4">
+                <button
+                  type="submit"
+                  disabled={isLoading || !query.trim()}
+                  className="btn-primary flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isLoading ? (
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                  ) : (
+                    <Sparkles className="h-5 w-5" />
+                  )}
+                  <span>{isLoading ? 'Analyzing...' : 'Get AI Answer'}</span>
+                </button>
+              </div>
+            </form>
+          </div>
+
+          {/* Example Queries */}
+          <div className="mb-8">
+            <h4 className="text-lg font-semibold text-gray-900 mb-4">Example Questions:</h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {exampleQueries.map((example, index) => (
+                <motion.button
+                  key={index}
+                  onClick={() => setQuery(example)}
+                  className="p-3 text-left bg-gray-50 hover:bg-gray-100 rounded-lg border border-gray-200 transition-all duration-200 hover:border-primary-300"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  <p className="text-sm text-gray-700">{example}</p>
+                </motion.button>
+              ))}
+            </div>
+          </div>
+
+          {/* Response */}
+          <AnimatePresence>
+            {response && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                className="card"
+              >
+                <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center space-x-2">
+                  <Brain className="h-5 w-5 text-primary-500" />
+                  <span>AI Response</span>
+                </h3>
+                
+                <div className="prose max-w-none">
+                  <div className="bg-gray-50 p-4 rounded-lg mb-4">
+                    <p className="text-gray-700 whitespace-pre-wrap">{response.answer}</p>
+                  </div>
+                  
+                  <div className="border-t pt-4">
+                    <h4 className="font-semibold text-gray-900 mb-2">Sources:</h4>
+                    <div className="space-y-2">
+                      {response.sources.map((source, index) => (
+                        <div key={index} className="flex items-center space-x-2 text-sm text-gray-600">
+                          <FileText className="h-4 w-4" />
+                          <span>{source.filename}</span>
+                          <span className="text-gray-400">({source.pages} pages)</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Documents List */}
+          {documents.length > 0 && (
+            <motion.div 
+              className="card mt-8"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.6 }}
+            >
+              <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center space-x-2">
+                <Database className="h-5 w-5 text-primary-500" />
+                <span>Available Documents</span>
+              </h3>
+              
+              <div className="space-y-3">
+                {documents.map((doc, index) => (
+                  <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div className="flex items-center space-x-3">
+                      <FileText className="h-5 w-5 text-gray-500" />
+                      <div>
+                        <p className="font-medium text-gray-900">{doc.filename}</p>
+                        <p className="text-sm text-gray-600">{doc.pages} pages • {doc.text_length.toLocaleString()} characters</p>
+                      </div>
+                    </div>
+                    <div className="text-sm text-gray-500">
+                      {doc.source.split('/').pop()}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+          )}
+        </motion.div>
+      </main>
+
+      {/* Footer */}
+      <footer className="bg-white border-t border-gray-200 mt-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="text-center text-gray-600">
+            <p>Powered by OpenAI GPT-4 • Built with Next.js • Deployed on Vercel</p>
+          </div>
+        </div>
+      </footer>
+    </div>
+  )
+}
