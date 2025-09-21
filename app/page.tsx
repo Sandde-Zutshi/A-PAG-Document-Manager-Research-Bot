@@ -34,6 +34,7 @@ interface QueryResponse {
 
 export default function Home() {
   const [query, setQuery] = useState('')
+  const [domain, setDomain] = useState('https://a-pag.org')
   const [isLoading, setIsLoading] = useState(false)
   const [isCrawling, setIsCrawling] = useState(false)
   const [response, setResponse] = useState<QueryResponse | null>(null)
@@ -64,12 +65,17 @@ export default function Home() {
   }
 
   const handleCrawl = async () => {
+    if (!domain.trim()) {
+      setError('Please enter a valid domain URL')
+      return
+    }
+    
     setIsCrawling(true)
     setCrawlStatus('')
     setError('')
     
     try {
-      const response = await axios.post('/api/crawl')
+      const response = await axios.post('/api/crawl', { domain: domain.trim() })
       if (response.data.status === 'success') {
         setCrawlStatus(response.data.message)
         setTotalDocuments(response.data.total_files)
@@ -126,12 +132,27 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
-              <div className="p-2 bg-gradient-to-r from-primary-500 to-accent-500 rounded-lg">
-                <Brain className="h-8 w-8 text-white" />
+              <div className="p-2 bg-gradient-to-r from-blue-600 to-green-600 rounded-lg">
+                <img 
+                  src="https://a-pag.org/wp-content/uploads/2024/01/A-PAG-Logo-White-BG-300x300.png" 
+                  alt="A-PAG Logo" 
+                  className="h-8 w-8 object-contain"
+                  onError={(e) => {
+                    // Fallback to text if image fails to load
+                    e.currentTarget.style.display = 'none';
+                    const nextElement = e.currentTarget.nextElementSibling as HTMLElement;
+                    if (nextElement) {
+                      nextElement.style.display = 'flex';
+                    }
+                  }}
+                />
+                <div className="h-8 w-8 flex items-center justify-center text-white font-bold text-sm" style={{display: 'none'}}>
+                  A-PAG
+                </div>
               </div>
               <div>
-                <h1 className="text-2xl font-bold gradient-text">Document Manager</h1>
-                <p className="text-sm text-gray-600">AI Research Bot</p>
+                <h1 className="text-2xl font-bold gradient-text">A-PAG Research Bot</h1>
+                <p className="text-sm text-gray-600">Pollution Research Assistant</p>
               </div>
             </div>
             <div className="flex items-center space-x-4">
@@ -153,8 +174,8 @@ export default function Home() {
           transition={{ duration: 0.6 }}
         >
           <h2 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
-            AI-Powered Document
-            <span className="gradient-text block">Research Assistant</span>
+            A-PAG AI Powered
+            <span className="gradient-text block">Pollution Researcher</span>
           </h2>
           <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
             Crawl environmental documents, extract insights, and get intelligent answers 
@@ -162,7 +183,7 @@ export default function Home() {
           </p>
           
           {/* Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
             <motion.div 
               className="card text-center"
               whileHover={{ scale: 1.05 }}
@@ -178,50 +199,69 @@ export default function Home() {
               whileHover={{ scale: 1.05 }}
               transition={{ duration: 0.2 }}
             >
-              <Zap className="h-12 w-12 text-accent-500 mx-auto mb-4" />
-              <h3 className="text-2xl font-bold text-gray-900">GPT-4</h3>
-              <p className="text-gray-600">AI Model</p>
-            </motion.div>
-            
-            <motion.div 
-              className="card text-center"
-              whileHover={{ scale: 1.05 }}
-              transition={{ duration: 0.2 }}
-            >
               <Globe className="h-12 w-12 text-blue-500 mx-auto mb-4" />
-              <h3 className="text-2xl font-bold text-gray-900">EPA</h3>
+              <h3 className="text-2xl font-bold text-gray-900">Custom</h3>
               <p className="text-gray-600">Data Sources</p>
             </motion.div>
           </div>
         </motion.div>
 
-        {/* Action Buttons */}
+        {/* Domain Input and Action Buttons */}
         <motion.div 
-          className="flex flex-col sm:flex-row gap-4 justify-center mb-12"
+          className="max-w-4xl mx-auto mb-12"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.2 }}
         >
-          <button
-            onClick={handleCrawl}
-            disabled={isCrawling}
-            className="btn-primary flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {isCrawling ? (
-              <Loader2 className="h-5 w-5 animate-spin" />
-            ) : (
-              <Download className="h-5 w-5" />
-            )}
-            <span>{isCrawling ? 'Crawling...' : 'Crawl Documents'}</span>
-          </button>
-          
-          <button
-            onClick={loadDocumentStatus}
-            className="btn-secondary flex items-center justify-center space-x-2"
-          >
-            <FileText className="h-5 w-5" />
-            <span>Refresh Status</span>
-          </button>
+          <div className="card mb-6">
+            <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center space-x-2">
+              <Globe className="h-5 w-5 text-primary-500" />
+              <span>Configure Data Source</span>
+            </h3>
+            
+            <div className="space-y-4">
+              <div>
+                <label htmlFor="domain" className="block text-sm font-medium text-gray-700 mb-2">
+                  Enter website domain to crawl for documents:
+                </label>
+                <input
+                  id="domain"
+                  type="url"
+                  value={domain}
+                  onChange={(e) => setDomain(e.target.value)}
+                  placeholder="https://example.com"
+                  className="input-field w-full"
+                  disabled={isCrawling}
+                />
+                <p className="text-sm text-gray-500 mt-1">
+                  Default: <span className="font-mono">https://a-pag.org</span> - Enter any website URL to crawl for documents
+                </p>
+              </div>
+              
+              <div className="flex flex-col sm:flex-row gap-4">
+                <button
+                  onClick={handleCrawl}
+                  disabled={isCrawling || !domain.trim()}
+                  className="btn-primary flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isCrawling ? (
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                  ) : (
+                    <Download className="h-5 w-5" />
+                  )}
+                  <span>{isCrawling ? 'Crawling...' : 'Crawl Documents'}</span>
+                </button>
+                
+                <button
+                  onClick={loadDocumentStatus}
+                  className="btn-secondary flex items-center justify-center space-x-2"
+                >
+                  <FileText className="h-5 w-5" />
+                  <span>Refresh Status</span>
+                </button>
+              </div>
+            </div>
+          </div>
         </motion.div>
 
         {/* Status Messages */}
@@ -433,7 +473,10 @@ export default function Home() {
       <footer className="bg-white border-t border-gray-200 mt-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="text-center text-gray-600">
-            <p>Powered by OpenAI GPT-4 • Built with Next.js • Deployed on Vercel</p>
+            <p>A-PAG Research Bot • Built with Next.js • Deployed on Vercel</p>
+            <p className="text-sm mt-2">
+              Powered by <a href="https://a-pag.org" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800">A-PAG</a>
+            </p>
           </div>
         </div>
       </footer>
