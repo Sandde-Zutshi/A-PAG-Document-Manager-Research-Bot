@@ -27,7 +27,30 @@ An AI-powered document research bot that crawls environmental documents, extract
 - OpenAI API key
 - Vercel account (for deployment)
 
-## 🚀 Quick Start
+## 🚀 One-Click Deploy
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/your-username/A-PAG-Document-Manager-Research-Bot)
+
+**That's it!** The app will work immediately in demo mode. No environment variables needed for basic functionality.
+
+### 🎯 What Works Out of the Box:
+- ✅ Document crawling from EPA sources
+- ✅ Beautiful UI and animations
+- ✅ Demo AI responses (no API key needed)
+- ✅ Document management and display
+- ✅ Real-time status updates
+
+### 🔑 Optional: Add OpenAI API Key
+For full AI-powered responses, add your OpenAI API key:
+
+1. Go to [Vercel Dashboard](https://vercel.com/dashboard)
+2. Click your project → **Settings** → **Environment Variables**
+3. Add `OPENAI_API_KEY` with your key
+4. Redeploy automatically
+
+---
+
+## 🛠️ Local Development
 
 ### 1. Clone and Install
 
@@ -37,22 +60,20 @@ cd A-PAG-Document-Manager-Research-Bot
 npm install
 ```
 
-### 2. Environment Setup
+### 2. Environment Setup (Optional)
 
 ```bash
 # Copy environment template
 cp env.example .env.local
 
-# Add your OpenAI API key
+# Add your OpenAI API key (optional for demo mode)
 echo "OPENAI_API_KEY=your_actual_api_key_here" >> .env.local
 ```
 
-### 3. Local Development
+### 3. Start Development Server
 
 ```bash
-# Start the development server
 npm run dev
-
 # Open http://localhost:3000
 ```
 
@@ -63,10 +84,7 @@ npm run dev
 npm i -g vercel
 
 # Deploy
-vercel
-
-# Set environment variables in Vercel dashboard
-# OPENAI_API_KEY=your_actual_api_key_here
+npm run deploy
 ```
 
 ## 🎯 Demo Instructions
@@ -134,11 +152,13 @@ Returns information about available documents
 
 ## 🔒 Environment Variables
 
-| Variable | Description | Required |
-|----------|-------------|----------|
-| `OPENAI_API_KEY` | OpenAI API key for GPT-4 access | Yes |
-| `NEXT_PUBLIC_APP_NAME` | Application name | No |
-| `NEXT_PUBLIC_APP_VERSION` | Application version | No |
+| Variable | Description | Required | Default |
+|----------|-------------|----------|---------|
+| `OPENAI_API_KEY` | OpenAI API key for GPT-4 access | No* | Demo mode |
+| `NEXT_PUBLIC_APP_NAME` | Application name | No | "Document Manager Research Bot" |
+| `NEXT_PUBLIC_APP_VERSION` | Application version | No | "1.0.0" |
+
+*Required only for full AI-powered responses. App works in demo mode without it.
 
 ## 🚀 Deployment
 

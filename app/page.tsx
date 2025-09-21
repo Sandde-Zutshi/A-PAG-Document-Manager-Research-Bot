@@ -29,6 +29,7 @@ interface QueryResponse {
   sources: Document[]
   query: string
   model_used: string
+  demo_mode?: boolean
 }
 
 export default function Home() {
@@ -40,6 +41,8 @@ export default function Home() {
   const [documents, setDocuments] = useState<Document[]>([])
   const [totalDocuments, setTotalDocuments] = useState(0)
   const [crawlStatus, setCrawlStatus] = useState('')
+  const [openaiConfigured, setOpenaiConfigured] = useState(true)
+  const [setupInstructions, setSetupInstructions] = useState<any>(null)
 
   // Load document status on component mount
   useEffect(() => {
@@ -52,6 +55,8 @@ export default function Home() {
       if (response.data.status === 'success') {
         setDocuments(response.data.documents)
         setTotalDocuments(response.data.total_documents)
+        setOpenaiConfigured(response.data.openai_configured)
+        setSetupInstructions(response.data.setup_instructions)
       }
     } catch (error) {
       console.error('Error loading document status:', error)
@@ -244,6 +249,46 @@ export default function Home() {
               <span className="text-red-700">{error}</span>
             </motion.div>
           )}
+
+          {!openaiConfigured && setupInstructions && (
+            <motion.div
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="mb-6 p-6 bg-green-50 border border-green-200 rounded-lg"
+            >
+              <div className="flex items-start space-x-3">
+                <CheckCircle className="h-6 w-6 text-green-500 mt-1" />
+                <div className="flex-1">
+                  <h3 className="text-lg font-semibold text-green-900 mb-2">
+                    🎉 App is Working in Demo Mode!
+                  </h3>
+                  <p className="text-green-700 mb-4">
+                    You can crawl documents and get demo responses right now! For full AI-powered analysis, add your OpenAI API key (optional).
+                  </p>
+                  <div className="space-y-2">
+                    <div className="flex items-center space-x-2">
+                      <span className="w-6 h-6 bg-green-500 text-white rounded-full flex items-center justify-center text-sm font-semibold">✓</span>
+                      <span className="text-green-800">Document crawling works perfectly</span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <span className="w-6 h-6 bg-green-500 text-white rounded-full flex items-center justify-center text-sm font-semibold">✓</span>
+                      <span className="text-green-800">Demo AI responses available</span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <span className="w-6 h-6 bg-green-500 text-white rounded-full flex items-center justify-center text-sm font-semibold">✓</span>
+                      <span className="text-green-800">Full UI and features working</span>
+                    </div>
+                  </div>
+                  <div className="mt-4 p-3 bg-green-100 rounded-lg">
+                    <p className="text-sm text-green-800">
+                      <strong>Want full AI responses?</strong> Add your OpenAI API key in Vercel dashboard → Settings → Environment Variables → Add OPENAI_API_KEY
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          )}
         </AnimatePresence>
 
         {/* Query Section */}
@@ -281,7 +326,11 @@ export default function Home() {
                   ) : (
                     <Sparkles className="h-5 w-5" />
                   )}
-                  <span>{isLoading ? 'Analyzing...' : 'Get AI Answer'}</span>
+                  <span>
+                    {isLoading ? 'Analyzing...' : 
+                     !openaiConfigured ? 'Try Demo Mode' : 
+                     'Get AI Answer'}
+                  </span>
                 </button>
               </div>
             </form>
@@ -316,7 +365,12 @@ export default function Home() {
               >
                 <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center space-x-2">
                   <Brain className="h-5 w-5 text-primary-500" />
-                  <span>AI Response</span>
+                  <span>{response.demo_mode ? 'Demo Response' : 'AI Response'}</span>
+                  {response.demo_mode && (
+                    <span className="px-2 py-1 text-xs bg-yellow-100 text-yellow-800 rounded-full">
+                      Demo Mode
+                    </span>
+                  )}
                 </h3>
                 
                 <div className="prose max-w-none">
