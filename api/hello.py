@@ -1,5 +1,6 @@
 from http.server import BaseHTTPRequestHandler
 import json
+from datetime import datetime
 
 class handler(BaseHTTPRequestHandler):
     def do_GET(self):
@@ -11,9 +12,9 @@ class handler(BaseHTTPRequestHandler):
         self.end_headers()
         
         response = {
-            "message": "Hello from Pollution Agent",
+            "message": "Hello from Document Manager Research Bot",
             "status": "success",
-            "timestamp": "2024-01-01T00:00:00Z"
+            "timestamp": datetime.now().isoformat() + "Z"
         }
         
         self.wfile.write(json.dumps(response).encode())
